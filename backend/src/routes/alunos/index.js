@@ -1,5 +1,5 @@
 import express from 'express';
-import alunosRoutes from './alunos/routes.js';
+import alunosRoutes from './routes.js';
 
 const routes = express.Router();
 
