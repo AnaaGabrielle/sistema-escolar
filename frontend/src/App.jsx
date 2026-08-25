@@ -1,278 +1,787 @@
 import { useEffect, useState } from 'react';
 import {
-  Alert,
+  AppBar,
   Box,
-  Button,
-  Card,
-  CardContent,
-  Container,
-  Grid,
-  MenuItem,
-  Paper,
+  CssBaseline,
   Stack,
-  TextField,
+  Toolbar,
   Typography,
-} from '@mui/material';
+} from "@mui/material";
 
-const initialForm = {
-  nome: '',
-  email: '',
-  data_nascimento: '',
-  serie: '',
-  cpf: '',
-  telefone: '',
-  endereco: '',
-};
+import Dashboard from './Dashboard';
+import Alunos from './Alunos';
+import Turmas from './Turmas';
 
-const menuItems = [
-  { key: 'dashboard', label: 'Início', description: 'Visão geral do sistema' },
-  { key: 'alunos', label: 'Alunos', description: 'Cadastro e consulta de estudantes' },
-  { key: 'professores', label: 'Professores', description: 'Gestão da equipe' },
-  { key: 'turmas', label: 'Turmas', description: 'Organização escolar' },
-  { key: 'financeiro', label: 'Financeiro', description: 'Mensalidades e contas' },
-  { key: 'relatorios', label: 'Relatórios', description: 'Indicadores da escola' },
-];
+/* =========================================================
+   COMPONENTE DE NOTAS
+========================================================= */
 
-function App() {
-  const [form, setForm] = useState(initialForm);
-  const [alunos, setAlunos] = useState([]);
-  const [message, setMessage] = useState('');
-  const [view, setView] = useState('dashboard');
-  const [loggedIn, setLoggedIn] = useState(false);
-  const [loginForm, setLoginForm] = useState({ usuario: '', senha: '' });
-
-  const carregarAlunos = async () => {
+function Notas({ alunos = [] }) {
+  const [notas, setNotas] = useState(() => {
     try {
-      const response = await fetch('/api/alunos');
-      if (!response.ok) throw new Error('Erro ao carregar alunos');
-      const data = await response.json();
-      setAlunos(data);
-    } catch (error) {
-      console.error(error);
+      return JSON.parse(
+        localStorage.getItem('notas_escolares') || '[]'
+      );
+    } catch {
+      return [];
     }
+  });
+
+  const [form, setForm] = useState({
+    aluno: '',
+    disciplina: '',
+    nota: '',
+    bimestre: '1º Bimestre',
+  });
+
+  const alterarCampo = (campo, valor) => {
+    setForm((atual) => ({
+      ...atual,
+      [campo]: valor,
+    }));
   };
 
-  useEffect(() => {
-    // Missao 001: carrega dados do modulo de alunos.
-    // Proximas missoes: criar novas funcoes de carga (ex.: carregarTurmas) neste mesmo padrao.
-    carregarAlunos();
-  }, []);
-
-  const handleChange = (event) => {
-    const { name, value } = event.target;
-    setForm({ ...form, [name]: value });
-  };
-
-  const handleLoginChange = (event) => {
-    const { name, value } = event.target;
-    setLoginForm({ ...loginForm, [name]: value });
-  };
-
-  const handleLoginSubmit = (event) => {
+  const salvarNota = (event) => {
     event.preventDefault();
-    if (loginForm.usuario && loginForm.senha) {
-      setLoggedIn(true);
+
+    if (
+      !form.aluno ||
+      !form.disciplina.trim() ||
+      form.nota === ''
+    ) {
+      return;
     }
-  };
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    try {
-      const response = await fetch('/api/alunos', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
-      });
+    const novaNota = {
+      id: Date.now(),
+      aluno: form.aluno,
+      disciplina: form.disciplina,
+      nota: Number(form.nota),
+      bimestre: form.bimestre,
+    };
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(errorText || 'Erro ao cadastrar aluno');
-      }
+    const novasNotas = [...notas, novaNota];
 
-      setMessage('Aluno cadastrado com sucesso!');
-      setForm(initialForm);
-      carregarAlunos();
-    } catch (error) {
-      setMessage(error.message);
-    }
-  };
+    setNotas(novasNotas);
 
-  if (!loggedIn) {
-    return (
-      <Container maxWidth="sm" sx={{ py: 6 }}>
-        <Paper elevation={6} sx={{ p: { xs: 3, md: 5 }, borderRadius: 4 }}>
-          <Stack spacing={3} alignItems="center">
-            <Box textAlign="center">
-              <Typography variant="h4" fontWeight={700}>
-                Sistema Escolar
-              </Typography>
-              <Typography color="text.secondary">
-                Acesso provisório ao painel administrativo.
-              </Typography>
-            </Box>
-
-            <form onSubmit={handleLoginSubmit} style={{ width: '100%' }}>
-              <Stack spacing={2}>
-                <TextField
-                  fullWidth
-                  label="Usuário"
-                  name="usuario"
-                  value={loginForm.usuario}
-                  onChange={handleLoginChange}
-                />
-                <TextField
-                  fullWidth
-                  label="Senha"
-                  name="senha"
-                  type="password"
-                  value={loginForm.senha}
-                  onChange={handleLoginChange}
-                />
-                <Button type="submit" variant="contained" size="large">
-                  Entrar
-                </Button>
-              </Stack>
-            </form>
-
-            <Typography variant="body2" color="text.secondary" textAlign="center">
-              Login ainda será implementado com autenticação real no próximo passo.
-            </Typography>
-          </Stack>
-        </Paper>
-      </Container>
+    localStorage.setItem(
+      'notas_escolares',
+      JSON.stringify(novasNotas)
     );
-  }
+
+    setForm({
+      aluno: '',
+      disciplina: '',
+      nota: '',
+      bimestre: '1º Bimestre',
+    });
+  };
+
+  const excluirNota = (id) => {
+    const novasNotas = notas.filter(
+      (nota) => nota.id !== id
+    );
+
+    setNotas(novasNotas);
+
+    localStorage.setItem(
+      'notas_escolares',
+      JSON.stringify(novasNotas)
+    );
+  };
 
   return (
-    <Container maxWidth="xl" sx={{ py: 4 }}>
-      <Paper elevation={3} sx={{ p: { xs: 3, md: 4 }, borderRadius: 4 }}>
-        <Stack spacing={3}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
-            <Box>
-              <Typography variant="h4" fontWeight={700}>
-                Painel Escolar
-              </Typography>
-              <Typography color="text.secondary">
-                Gestão administrativa e cadastro de estudantes.
-              </Typography>
-            </Box>
-            <Button variant="outlined" onClick={() => setLoggedIn(false)}>
-              Sair
-            </Button>
-          </Box>
+    <Box>
+      <Typography
+        variant="h5"
+        fontWeight={700}
+        sx={{ mb: 1 }}
+      >
+        Notas
+      </Typography>
 
+      <Typography
+        color="text.secondary"
+        sx={{ mb: 3 }}
+      >
+        Cadastre e consulte as notas dos alunos.
+      </Typography>
+
+      <Paper
+        variant="outlined"
+        sx={{
+          p: { xs: 2, md: 3 },
+          borderRadius: 3,
+          mb: 4,
+        }}
+      >
+        <Typography
+          variant="h6"
+          fontWeight={700}
+          sx={{ mb: 2 }}
+        >
+          Cadastrar nota
+        </Typography>
+
+        <Divider sx={{ mb: 3 }} />
+
+        <form onSubmit={salvarNota}>
           <Grid container spacing={2}>
-            {menuItems.map((item) => (
-              <Grid item xs={12} sm={6} md={4} key={item.key}>
-                <Button
-                  fullWidth
-                  variant={view === item.key ? 'contained' : 'outlined'}
-                  sx={{ justifyContent: 'flex-start', py: 2, px: 2, minHeight: 88 }}
-                  onClick={() => setView(item.key)}
-                >
-                  <Box textAlign="left">
-                    <Typography fontWeight={600}>{item.label}</Typography>
-                    <Typography variant="body2" sx={{ opacity: 0.8 }}>
-                      {item.description}
-                    </Typography>
-                  </Box>
-                </Button>
-              </Grid>
-            ))}
+            <Grid size={{ xs: 12, md: 3 }}>
+              <TextField
+                select
+                SelectProps={{
+                  native: true,
+                }}
+                label="Aluno"
+                value={form.aluno}
+                onChange={(event) =>
+                  alterarCampo(
+                    'aluno',
+                    event.target.value
+                  )
+                }
+                fullWidth
+                required
+              >
+                <option value="">
+                  Selecione
+                </option>
+
+                {alunos.map((aluno) => (
+                  <option
+                    key={
+                      aluno.id ||
+                      aluno.email ||
+                      aluno.nome
+                    }
+                    value={aluno.nome}
+                  >
+                    {aluno.nome}
+                  </option>
+                ))}
+              </TextField>
+            </Grid>
+
+            <Grid size={{ xs: 12, md: 3 }}>
+              <TextField
+                label="Disciplina"
+                value={form.disciplina}
+                onChange={(event) =>
+                  alterarCampo(
+                    'disciplina',
+                    event.target.value
+                  )
+                }
+                placeholder="Ex.: Matemática"
+                fullWidth
+                required
+              />
+            </Grid>
+
+            <Grid size={{ xs: 12, md: 2 }}>
+              <TextField
+                label="Nota"
+                type="number"
+                inputProps={{
+                  min: 0,
+                  max: 10,
+                  step: 0.1,
+                }}
+                value={form.nota}
+                onChange={(event) =>
+                  alterarCampo(
+                    'nota',
+                    event.target.value
+                  )
+                }
+                fullWidth
+                required
+              />
+            </Grid>
+
+            <Grid size={{ xs: 12, md: 2 }}>
+              <TextField
+                select
+                SelectProps={{
+                  native: true,
+                }}
+                label="Bimestre"
+                value={form.bimestre}
+                onChange={(event) =>
+                  alterarCampo(
+                    'bimestre',
+                    event.target.value
+                  )
+                }
+                fullWidth
+              >
+                <option value="1º Bimestre">
+                  1º Bimestre
+                </option>
+
+                <option value="2º Bimestre">
+                  2º Bimestre
+                </option>
+
+                <option value="3º Bimestre">
+                  3º Bimestre
+                </option>
+
+                <option value="4º Bimestre">
+                  4º Bimestre
+                </option>
+              </TextField>
+            </Grid>
+
+            <Grid
+              size={{ xs: 12, md: 2 }}
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+              }}
+            >
+              <Button
+                type="submit"
+                variant="contained"
+                fullWidth
+                size="large"
+              >
+                Salvar nota
+              </Button>
+            </Grid>
           </Grid>
+        </form>
+      </Paper>
 
-          {/* Estrategia pedagogica: cada tela deve virar um modulo separado com sua regra e seu formulario. */}
-          {view === 'alunos' ? (
-            <Box>
-              <Typography variant="h5" fontWeight={600} sx={{ mb: 2 }}>
-                Cadastro de Alunos
-              </Typography>
+      <Typography
+        variant="h6"
+        fontWeight={700}
+        sx={{ mb: 2 }}
+      >
+        Notas cadastradas
+      </Typography>
 
-              {message && (
-                <Alert severity={message.includes('sucesso') ? 'success' : 'error'} sx={{ mb: 2 }}>
-                  {message}
-                </Alert>
-              )}
+      {notas.length === 0 ? (
+        <Paper
+          variant="outlined"
+          sx={{
+            p: 4,
+            borderRadius: 3,
+            textAlign: 'center',
+          }}
+        >
+          <Typography variant="h6">
+            Nenhuma nota cadastrada
+          </Typography>
 
-              <Paper variant="outlined" sx={{ p: 3, borderRadius: 3 }}>
-                <form onSubmit={handleSubmit}>
-                  <Grid container spacing={2}>
-                    <Grid item xs={12} md={6}>
-                      <TextField fullWidth label="Nome" name="nome" value={form.nome} onChange={handleChange} required />
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                      <TextField fullWidth label="E-mail" name="email" type="email" value={form.email} onChange={handleChange} required />
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                      <TextField fullWidth label="Data de nascimento" name="data_nascimento" type="date" value={form.data_nascimento} onChange={handleChange} InputLabelProps={{ shrink: true }} required />
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                      <TextField select fullWidth label="Série" name="serie" value={form.serie} onChange={handleChange} required>
-                        <MenuItem value="1º Ano">1º Ano</MenuItem>
-                        <MenuItem value="2º Ano">2º Ano</MenuItem>
-                        <MenuItem value="3º Ano">3º Ano</MenuItem>
-                        <MenuItem value="4º Ano">4º Ano</MenuItem>
-                        <MenuItem value="5º Ano">5º Ano</MenuItem>
-                      </TextField>
-                    </Grid>
-                    <Grid item xs={12} md={4}>
-                      <TextField fullWidth label="CPF" name="cpf" value={form.cpf} onChange={handleChange} />
-                    </Grid>
-                    <Grid item xs={12} md={4}>
-                      <TextField fullWidth label="Telefone" name="telefone" value={form.telefone} onChange={handleChange} />
-                    </Grid>
-                    <Grid item xs={12} md={4}>
-                      <TextField fullWidth label="Endereço" name="endereco" value={form.endereco} onChange={handleChange} />
-                    </Grid>
-                  </Grid>
-
-                  <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mt: 3 }}>
-                    <Button type="submit" variant="contained" size="large">
-                      Salvar aluno
-                    </Button>
-                    <Button variant="outlined" size="large" onClick={() => setForm(initialForm)}>
-                      Limpar
-                    </Button>
-                  </Stack>
-                </form>
-              </Paper>
-
-              <Card sx={{ mt: 4 }}>
+          <Typography
+            color="text.secondary"
+            sx={{ mt: 1 }}
+          >
+            As notas cadastradas aparecerão aqui.
+          </Typography>
+        </Paper>
+      ) : (
+        <Grid container spacing={2}>
+          {notas.map((nota) => (
+            <Grid
+              size={{
+                xs: 12,
+                sm: 6,
+                md: 4,
+              }}
+              key={nota.id}
+            >
+              <Card
+                variant="outlined"
+                sx={{
+                  borderRadius: 3,
+                  height: '100%',
+                }}
+              >
                 <CardContent>
-                  <Typography variant="h6" gutterBottom>
-                    Alunos cadastrados
+                  <Typography
+                    variant="h6"
+                    fontWeight={700}
+                  >
+                    {nota.aluno}
                   </Typography>
-                  {alunos.length === 0 ? (
-                    <Typography color="text.secondary">Nenhum aluno cadastrado ainda.</Typography>
-                  ) : (
-                    <Stack spacing={1}>
-                      {alunos.map((aluno) => (
-                        <Box key={aluno.id} sx={{ p: 1.5, border: '1px solid #e0e0e0', borderRadius: 2 }}>
-                          <Typography fontWeight={600}>{aluno.nome}</Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            {aluno.email} • {aluno.serie}
-                          </Typography>
-                        </Box>
-                      ))}
-                    </Stack>
-                  )}
+
+                  <Typography
+                    color="text.secondary"
+                    sx={{ mt: 1 }}
+                  >
+                    {nota.disciplina}
+                  </Typography>
+
+                  <Typography sx={{ mt: 1 }}>
+                    <strong>Nota:</strong>{' '}
+                    {nota.nota}
+                  </Typography>
+
+                  <Typography>
+                    <strong>Bimestre:</strong>{' '}
+                    {nota.bimestre}
+                  </Typography>
+
+                  <Button
+                    color="error"
+                    size="small"
+                    sx={{ mt: 2 }}
+                    onClick={() =>
+                      excluirNota(nota.id)
+                    }
+                  >
+                    Excluir
+                  </Button>
                 </CardContent>
               </Card>
-            </Box>
-          ) : (
-            <Paper variant="outlined" sx={{ p: 4, borderRadius: 3 }}>
-              <Typography variant="h6" gutterBottom>
-                {menuItems.find((item) => item.key === view)?.label}
-              </Typography>
-              <Typography color="text.secondary">
-                Esta area ficara disponivel para a proxima etapa do sistema escolar.
-                Para a Missao 002, criem um componente/modulo proprio para Turmas antes de adicionar regras aqui.
-              </Typography>
-            </Paper>
-          )}
-        </Stack>
-      </Paper>
-    </Container>
+            </Grid>
+          ))}
+        </Grid>
+      )}
+    </Box>
+  );
+}
+
+/* =========================================================
+   APP PRINCIPAL
+========================================================= */
+
+function App() {
+  const [pagina, setPagina] =
+    useState('dashboard');
+
+  /* =======================================================
+     ALUNOS
+  ======================================================= */
+
+  const [alunos, setAlunos] = useState(() => {
+    try {
+      return JSON.parse(
+        localStorage.getItem('alunos_escolares') || '[]'
+      );
+    } catch {
+      return [];
+    }
+  });
+
+  const [formAluno, setFormAluno] = useState({
+    nome: '',
+    email: '',
+    data_nascimento: '',
+    serie: '',
+    cpf: '',
+    telefone: '',
+    endereco: '',
+  });
+
+  const [mensagemAluno, setMensagemAluno] =
+    useState('');
+
+  useEffect(() => {
+    localStorage.setItem(
+      'alunos_escolares',
+      JSON.stringify(alunos)
+    );
+  }, [alunos]);
+
+  const alterarAluno = (event) => {
+    const { name, value } = event.target;
+
+    setFormAluno((atual) => ({
+      ...atual,
+      [name]: value,
+    }));
+  };
+
+  const cadastrarAluno = (event) => {
+    event.preventDefault();
+
+    if (!formAluno.nome.trim()) {
+      setMensagemAluno(
+        'Informe o nome do aluno.'
+      );
+
+      return;
+    }
+
+    const novoAluno = {
+      ...formAluno,
+      id: Date.now(),
+    };
+
+    setAlunos((atual) => [
+      ...atual,
+      novoAluno,
+    ]);
+
+    setFormAluno({
+      nome: '',
+      email: '',
+      data_nascimento: '',
+      serie: '',
+      cpf: '',
+      telefone: '',
+      endereco: '',
+    });
+
+    setMensagemAluno(
+      'Aluno cadastrado com sucesso!'
+    );
+  };
+
+  const limparAluno = () => {
+    setFormAluno({
+      nome: '',
+      email: '',
+      data_nascimento: '',
+      serie: '',
+      cpf: '',
+      telefone: '',
+      endereco: '',
+    });
+
+    setMensagemAluno('');
+  };
+
+  /* =======================================================
+     TURMAS - MISSÃO 002
+  ======================================================= */
+
+  const [turmas, setTurmas] = useState(() => {
+    try {
+      return JSON.parse(
+        localStorage.getItem('turmas_escolares') || '[]'
+      );
+    } catch {
+      return [];
+    }
+  });
+
+  const [formTurma, setFormTurma] = useState({
+    nome: '',
+    serie: '',
+    ano: '',
+    professor: '',
+    turmaSelecionada: '',
+    alunoSelecionado: '',
+  });
+
+  const [mensagemTurma, setMensagemTurma] =
+    useState('');
+
+  /* Salvar turmas automaticamente */
+
+  useEffect(() => {
+    localStorage.setItem(
+      'turmas_escolares',
+      JSON.stringify(turmas)
+    );
+  }, [turmas]);
+
+  /* Alterar campos da turma */
+
+  const alterarTurma = (event) => {
+    const { name, value } = event.target;
+
+    setFormTurma((atual) => ({
+      ...atual,
+      [name]: value,
+    }));
+  };
+
+  /* Cadastrar turma */
+
+  const cadastrarTurma = (event) => {
+    event.preventDefault();
+
+    if (!formTurma.nome.trim()) {
+      setMensagemTurma(
+        'Informe o nome da turma.'
+      );
+
+      return;
+    }
+
+    if (!formTurma.serie.trim()) {
+      setMensagemTurma(
+        'Informe a série da turma.'
+      );
+
+      return;
+    }
+
+    if (!formTurma.ano) {
+      setMensagemTurma(
+        'Informe o ano letivo.'
+      );
+
+      return;
+    }
+
+    const novaTurma = {
+      id: Date.now(),
+      nome: formTurma.nome.trim(),
+      serie: formTurma.serie.trim(),
+      ano: Number(formTurma.ano),
+      professor: formTurma.professor.trim(),
+      alunos: [],
+    };
+
+    setTurmas((atual) => [
+      ...atual,
+      novaTurma,
+    ]);
+
+    setFormTurma({
+      nome: '',
+      serie: '',
+      ano: '',
+      professor: '',
+      turmaSelecionada: '',
+      alunoSelecionado: '',
+    });
+
+    setMensagemTurma(
+      'Turma cadastrada com sucesso!'
+    );
+  };
+
+  /* Limpar formulário da turma */
+
+  const limparTurma = () => {
+    setFormTurma({
+      nome: '',
+      serie: '',
+      ano: '',
+      professor: '',
+      turmaSelecionada: '',
+      alunoSelecionado: '',
+    });
+
+    setMensagemTurma('');
+  };
+
+  /* =======================================================
+     VINCULAR ALUNO À TURMA
+  ======================================================= */
+
+  const vincularAluno = () => {
+    const turmaId = Number(
+      formTurma.turmaSelecionada
+    );
+
+    const alunoId = Number(
+      formTurma.alunoSelecionado
+    );
+
+    if (!turmaId || !alunoId) {
+      setMensagemTurma(
+        'Selecione uma turma e um aluno.'
+      );
+
+      return;
+    }
+
+    const aluno = alunos.find(
+      (item) => item.id === alunoId
+    );
+
+    if (!aluno) {
+      setMensagemTurma(
+        'Aluno não encontrado.'
+      );
+
+      return;
+    }
+
+    setTurmas((atuais) =>
+      atuais.map((turma) => {
+        if (turma.id !== turmaId) {
+          return turma;
+        }
+
+        const alunosDaTurma =
+          turma.alunos || [];
+
+        const alunoJaVinculado =
+          alunosDaTurma.some(
+            (item) => item.id === aluno.id
+          );
+
+        if (alunoJaVinculado) {
+          return turma;
+        }
+
+        return {
+          ...turma,
+          alunos: [
+            ...alunosDaTurma,
+            aluno,
+          ],
+        };
+      })
+    );
+
+    setFormTurma((atual) => ({
+      ...atual,
+      alunoSelecionado: '',
+    }));
+
+    setMensagemTurma(
+      'Aluno vinculado à turma com sucesso!'
+    );
+  };
+
+  /* =======================================================
+     MENU
+  ======================================================= */
+
+  const menu = [
+    {
+      id: 'dashboard',
+      label: 'Dashboard',
+    },
+    {
+      id: 'alunos',
+      label: 'Alunos',
+    },
+    {
+      id: 'turmas',
+      label: 'Turmas',
+    },
+    {
+      id: 'notas',
+      label: 'Notas',
+    },
+  ];
+
+  /* =======================================================
+     PÁGINAS
+  ======================================================= */
+
+  const renderPagina = () => {
+    switch (pagina) {
+      case 'alunos':
+        return (
+          <Alunos
+            form={formAluno}
+            alunos={alunos}
+            message={mensagemAluno}
+            onChange={alterarAluno}
+            onSubmit={cadastrarAluno}
+            onClear={limparAluno}
+          />
+        );
+
+      case 'turmas':
+        return (
+          <Turmas
+            form={formTurma}
+            turmas={turmas}
+            alunos={alunos}
+            message={mensagemTurma}
+            onChange={alterarTurma}
+            onSubmit={cadastrarTurma}
+            onClear={limparTurma}
+            onVincularAluno={vincularAluno}
+          />
+        );
+
+      case 'notas':
+        return (
+          <Notas
+            alunos={alunos}
+          />
+        );
+
+      case 'dashboard':
+      default:
+        return (
+          <Dashboard
+            alunos={alunos}
+          />
+        );
+    }
+  };
+
+  /* =======================================================
+     TELA
+  ======================================================= */
+
+  return (
+    <>
+      <CssBaseline />
+
+      <Box
+        sx={{
+          minHeight: '100vh',
+          backgroundColor: '#f5f7fb',
+        }}
+      >
+        <AppBar
+          position="static"
+          elevation={0}
+        >
+          <Toolbar
+            sx={{
+              justifyContent: 'space-between',
+              gap: 2,
+              flexWrap: 'wrap',
+              py: 1,
+            }}
+          >
+            <Typography
+              variant="h6"
+              fontWeight={700}
+            >
+              Sistema Escolar
+            </Typography>
+
+            <Stack
+              direction="row"
+              spacing={1}
+              sx={{
+                overflowX: 'auto',
+                maxWidth: '100%',
+              }}
+            >
+ {menu.map((item) => (
+  <Button
+    key={item.id}
+    onClick={() => setPagina(item.id)}
+    sx={{
+      color: 'white',
+      fontWeight: pagina === item.id ? 700 : 400,
+      backgroundColor:
+        pagina === item.id
+          ? 'rgba(255,255,255,0.18)'
+          : 'transparent',
+      '&:hover': {
+        backgroundColor: 'rgba(255,255,255,0.25)',
+      },
+    }}
+  >
+    {item.label}
+  </Button>
+))}
+            </Stack>
+          </Toolbar>
+        </AppBar>
+        
+
+        <Container
+          maxWidth="xl"
+          sx={{
+            py: 4,
+          }}
+        >
+          {renderPagina()}
+        </Container>
+      </Box>
+    </>
   );
 }
 
