@@ -47,22 +47,4 @@ async function startServer() {
 
 startServer().catch((error) => {
   console.error('Erro inesperado ao iniciar o servidor:', error);
-  // ... suas importações antigas (express, cors, rota de alunos, etc.) ...
-const express = require('express');
-const cors = require('cors');
-const app = express();
-
-app.use(cors());
-app.use(express.json());
-
-// Adicione a rota de turmas que criamos acima no gerenciador do servidor
-const turmaRoutes = require('./routes/turmaRoutes');
-app.use('/api/turmas', turmaRoutes);
-
-// Garanta que a rota de alunos antiga também esteja ativa aqui
-// app.use('/api/alunos', alunoRoutes);
-
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Servidor backend rodando na porta ${PORT}`));
-
 });
