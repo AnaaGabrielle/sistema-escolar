@@ -1,22 +1,203 @@
-:root {
-  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-  color: #0f172a;
-  background: linear-gradient(135deg, #e0f2fe 0%, #f8fafc 100%);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+.turmas-container {
+  padding: 30px;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
-body {
+.turmas-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.turmas-header h2 {
   margin: 0;
-  min-width: 320px;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #e0f2fe 0%, #f8fafc 100%);
+  font-size: 32px;
+  color: #1f2937;
 }
 
-* {
-  box-sizing: border-box;
+.turmas-header p {
+  margin-top: 8px;
+  color: #6b7280;
+}
+
+.contador {
+  background: #e8f0ff;
+  color: #2563eb;
+  padding: 10px 18px;
+  border-radius: 20px;
+  font-weight: bold;
+}
+
+/* CADASTRO */
+
+.cadastro-turma {
+  background: white;
+  padding: 25px;
+  border-radius: 14px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  margin-bottom: 30px;
+}
+
+.cadastro-turma h3,
+.lista-turmas h3 {
+  margin-top: 0;
+  color: #1f2937;
+}
+
+.cadastro-turma form {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.campo label {
+  font-weight: 600;
+  color: #374151;
+}
+
+.campo input,
+.campo select {
+  padding: 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+}
+
+.campo input:focus,
+.campo select:focus {
+  border-color: #2563eb;
+}
+
+.btn-cadastrar {
+  grid-column: 1 / -1;
+  padding: 13px;
+  border: none;
+  border-radius: 8px;
+  background: #2563eb;
+  color: white;
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.btn-cadastrar:hover {
+  background: #1d4ed8;
+}
+
+/* LISTA */
+
+.lista-turmas {
+  background: white;
+  padding: 25px;
+  border-radius: 14px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+.cards-turmas {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.card-turma {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 20px;
+  transition: 0.2s;
+}
+
+.card-turma:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+}
+
+.card-topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.icone-turma {
+  font-size: 30px;
+}
+
+.btn-excluir {
+  border: none;
+  background: #fee2e2;
+  padding: 8px 10px;
+  border-radius: 7px;
+  cursor: pointer;
+}
+
+.btn-excluir:hover {
+  background: #fecaca;
+}
+
+.card-turma h4 {
+  font-size: 18px;
+  color: #1f2937;
+  margin: 18px 0;
+}
+
+.informacoes {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.sem-turmas {
+  text-align: center;
+  padding: 40px;
+  color: #6b7280;
+}
+
+.sem-turmas .icone {
+  font-size: 45px;
+  margin-bottom: 10px;
+}
+
+.sem-turmas p {
+  font-size: 18px;
+  font-weight: bold;
+  color: #374151;
+  margin: 5px;
+}
+
+.sem-turmas span {
+  font-size: 14px;
+}
+
+/* CELULAR */
+
+@media (max-width: 800px) {
+
+  .turmas-container {
+      padding: 20px;
+  }
+
+  .turmas-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 15px;
+  }
+
+  .cadastro-turma form {
+      grid-template-columns: 1fr;
+  }
+
+  .cards-turmas {
+      grid-template-columns: 1fr;
+  }
+
 }
